@@ -1,3 +1,38 @@
+# 参考文档
+    https://croit.io/blog/ceph-performance-test-and-optimization
+    https://www.163.com/dy/article/GK14NHJS05387C0Z.html
+
+# Build
+    git clone https://github.com/IO500/io500.git
+    yum install autoconf  automake openmpi openmpi-devel -y
+    echo "export PATH=$PATH:/usr/lib64/openmpi/bin/" >> /root/.bashrc
+    echo "export LD_LIBRARY_PATH=/usr/lib64/openmpi/lib/" >> /root/.bashrc
+    ./prepare.sh  编译使用到的ior、mdtest等工具
+    make  编译io500 工具
+
+# Run
+    可以使用代码内的io500.sh,需要修改io500_mpiargs参数来调整mpiexec的并发数
+    mpiexec --allow-run-as-root -np 15 /root/io500/io500 /root/io500/config-io500.ini
+#
+    config-io500.ini内容
+    [global]
+    datadir = /mnt/lustre
+    drop-caches = TRUE
+    drop-cache-cmd = /usr/local/bin/drop_caches
+
+    [debug]
+    stonewall-time=30
+
+    drop_caches脚本内容
+    #!/bin/bash
+    echo 3 > /proc/sys/vm/drop_caches
+
+#  
+    mpiexec(mpirun)并非时，需要配置ssh免密登陆，并且主控节点修改vim /etc/openmpi-x86_64/openmpi-default-hostfile，如下：
+    192.168.1.1 slots=5
+    slots为每个节点的并发数，所有节点并非数总和与mpiexec命令中nb参数保持一致
+
+------------------------------------------以下为源代码仓库的说明-------------------------------
 # io500
 
 This is the C version of the IO500 benchmark.
